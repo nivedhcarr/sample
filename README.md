@@ -16,7 +16,7 @@ This repository serves as a technical portfolio focused on **Windows Internals**
 *   **Techniques:** Uses `readgsqword` for direct PEB access, Heap Flag analysis, and `ThreadHideFromDebugger` active defense.
 *   **Target:** Bypassing researcher instrumentation and automated sandboxes.
 
-### 3. [Win32 Persistence & Keylogger](./Keylogger-Research)
+### 3. [Win-Keylogger](./Win-Keylogger)
 *   **Purpose:** Research into User-mode API hooking and registry-based persistence.
 *   **Techniques:** Implements `SetWindowsHookEx` and `RegSetValueExA` for boot-time survival.
 *   **Focus:** Understanding low-level input interception and stealthy data logging.
