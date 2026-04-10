@@ -28,6 +28,12 @@ This repository serves as a technical portfolio focused on **Windows Internals**
 *   **Windows Internals:** PEB/TEB Parsing, Win32 API, Native API (NTAPI), Process Injection.
 *   **Reversing Tools:** Ghidra, x64dbg, PE-bear, Process Hacker etc
 *   **Research:** Technical Writing, MITRE ATT&CK Mapping, IOC Extraction.
+  
+## 🤖 AI-Augmented Research Methodology
+These projects were developed using an **AI-Assisted Workflow**. I utilized advanced Large Language Models (LLMs) as research collaborators to:
+*   **Architect Complex Logic:** Co-developing the C++ implementation for low-level Windows API hooking and anti-debugging.
+*   **Documentation:** The 'Detailed Reports' included in these folders are curated exports of technical deep-dives, code explanations, and workflow logic generated during AI research and browsing sessions.
+
 
 ## 🛡️ Analyst Mindset
 Every project in this lab includes a **Defensive Analysis** section, providing Indicators of Compromise (IOCs) and detection strategies for Blue Teams and EDR developers.
