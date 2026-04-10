@@ -10,9 +10,8 @@ This repository serves as a technical portfolio focused on **Windows Internals**
 ### 1. [Custom API Hooking Tool](./Custom%20API%20Hooking%20Tool)
 *   **Purpose:** Real-time interception of System Calls (NTAPI/Win32).
 *   **Highlights:** Intercepts `NtQuerySystemInformation` and `CreateFileW`.
-*   **Documentation:** Includes an extensive **13,000+ word technical whitepaper** on memory manipulation and workflow analysis.
 
-### 2. [Advanced Anti-Debugging Library](./Anti-Debug-Library)
+### 2. [Anti Debugging Library](./Anti%20Debugging%20Library)
 *   **Purpose:** A multi-vector protection library to detect and neutralize analysis environments.
 *   **Techniques:** Uses `readgsqword` for direct PEB access, Heap Flag analysis, and `ThreadHideFromDebugger` active defense.
 *   **Target:** Bypassing researcher instrumentation and automated sandboxes.
