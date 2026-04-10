@@ -28,3 +28,4 @@ An analyst or Blue Team member can detect this activity via:
 
 ## ⚠️ Ethical & Safety Disclaimer
 **FOR RESEARCH PURPOSES ONLY.** This repository is intended for Malware Analysts and Security Researchers to understand threat actor methodologies. Handling or executing this code outside of a controlled sandbox environment is not recommended.
+
