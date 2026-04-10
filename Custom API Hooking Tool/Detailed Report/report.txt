@@ -1,1 +1,205 @@
 
+Custom API Hooking Tool: Develop a Windows-based framework to intercept system calls (like CreateFileW or NtQuerySystemInformation) in real-time to monitor a sample's hidden behavior.
+
+To start building your Advanced Inline Hooking Framework, we begin with Address Resolution. Before you can place a hook, your code must find the exact memory address of the target function within the system's DLLs.
+We will target NtCreateFile in ntdll.dll. This is a low-level Native API that almost all file operations eventually pass through.
+The Plan:
+
+    Get a handle to ntdll.dll using GetModuleHandleW.
+    Find the exported address of NtCreateFile using GetProcAddress.
+handle-retrieved module handle for ntdll.dll.
+addressofNtcreatefile-stores the address of Ntcreatefile.
+
+Now that you have the memory address of your target (e.g.,
+NtCreateFile), you are ready for Step 2: Instruction Length Analysis.
+The goal here is to determine how many bytes we need to "stolen" from the original function to fit our JMP without cutting an instruction in half. For x64, we typically aim for a 14-byte absolute JMP to ensure we can reach our hook regardless of memory distance.
+
+CS_ERR_OK means "No Error" or "Success"
+If there is an error, it
+hits the return and the function stops immediately.
+What the count variable stores:
+The function returns the number of instructions it successfully parsed.
+
+    If it returns 5, it means it found 5 complete assembly instructions within those 64 bytes.
+    We then loop through those 5 instructions to add up their .size until we hit our magic number (14 bytes).
+Why 14 bytes?
+In 64-bit Windows, your hook function (in your DLL) might be very far away from ntdll.dll. A standard 5-byte JMP only reaches 2GB. A 14-byte Absolute JMP can reach anywhere in memory, which is essential for a reliable framework.
+
+why did we pass both (uint8_t*)adderessofNtcreatefile and (uint64_t)addressofNtcreatefile??
+It seems redundant because, in this specific project, the
+source of the code and the intended location of the code are the same. However, Capstone is designed to be a universal disassembler, and it separates them for these two reasons:
+1. The "Physical" vs. "Logical" Distinction
+
+    (uint8_t*) (The Physical Buffer): This is where the bytes actually are right now in your RAM. If you were analyzing a malware sample you just loaded from a file into a temporary buffer, this would point to that buffer.
+    (uint64_t) (The Logical Address): This is where the code thinks it is. If that malware sample expects to run at 0x400000, you pass that address here so Capstone can correctly calculate relative jumps (like JMP +20).
+
+2. Correcting "RIP-Relative" Addressing
+Modern 64-bit Windows code uses RIP-relative addressing. Many instructions don't say "Go to address X"; they say "Go to [Current Position] + 50 bytes."
+
+    If you don't pass the Logical Address, Capstone has no "Current Position" to start from.
+    It would calculate 0 + 50, giving you the wrong destination.
+    By passing the real target_address as a uint64_t, Capstone can do the math: 0x7FFE1000 + 50 = 0x7FFE1032.
+
+Summary for your Hook:
+Since you are hooking a live function in memory (NtCreateFile), the bytes are already at their logical home. You pass both because:
+
+    The Pointer lets Capstone read the bytes.
+    The Integer lets Capstone understand the jumps.
+The First Cast (uint8_t*): Changes the Type of the pointer (Pointer → Pointer).
+The Second Cast (uint64_t): Changes the Nature of the data (Pointer → Number).
+
+
+Now that we've "measured" the instructions at that address, the next step is to allocate the Trampoline. This is a special "landing pad" for those bytes.
+
+
+
+
+what we are doing...
+The Original State
+When the malware calls NtCreateFile, it expects to see the real Windows instructions:
+
+    Instruction A: (3 bytes)
+    Instruction B: (5 bytes)
+    Instruction C: (7 bytes)
+    ... (Rest of the function)
+
+The "Stolen" State (Your Step 2)
+You used Capstone to find a safe "cut point." You realized you need 15 bytes to fit your hook. You copy (not move yet!) Instructions A, B, and C into your Trampoline buffer.
+The "Overwritten" State (The Hook)
+Now you destroy the original bytes at the start of NtCreateFile by "painting" over them with your 14-byte Absolute JMP.
+If the malware calls NtCreateFile now:
+
+    The CPU arrives at NtCreateFile.
+    It hits your 14-byte JMP.
+    It is "teleported" to your C++ function (where you log the malware's activity).
+
+The "Resume" State (The Trampoline)
+Once your C++ function finishes logging, you want the malware to continue (so it doesn't know it's being watched).
+
+    Your function calls the Trampoline.
+    The Trampoline runs the Stolen Bytes (Instructions A, B, and C).
+    The Trampoline then uses its own 14-byte JMP to send the CPU back to the original function, but after the spot where you placed your hook.
+
+When you hook a function, you overwrite its beginning (the "prologue") with a jump to your own code. If you try to call that function normally from your detour, it will just jump back to your detour, causing an infinite loop and a crash.
+
+step 3
+
+ NULL (The Starting Address)
+You are telling Windows: "I don't care where in RAM this goes; you find a spot for me."
+
+    If you passed a specific address, the call might fail if that spot is already taken. Letting Windows decide is the most stable approach.
+
+3. trampoline_size (The Length)
+This is the total_bytes (from Capstone) + 14 bytes.
+
+    It must be large enough to hold the Original Instructions (e.g., 17 bytes) PLUS the Return JMP (14 bytes) that sends the CPU back to the real function.
+
+4. MEM_COMMIT | MEM_RESERVE (The Allocation Type)
+This is a "double-punch" for memory:
+
+    MEM_RESERVE: Tells Windows: "Set aside this range of virtual addresses for me."
+    MEM_COMMIT: Tells Windows: "Actually allocate the physical RAM for this space now."
+    Using both ensures the memory is immediately available for you to write to.
+
+5. PAGE_EXECUTE_READWRITE (The Permissions)
+This is the most critical part for a malware analyst. Normally, memory is either Read/Write (Data) or Read/Execute (Code).
+
+    READWRITE: You need this so you can memcpy the stolen bytes into the trampoline.
+    EXECUTE: You need this so the CPU is allowed to run the code once it's there.
+    Warning: Professional EDRs (like CrowdStrike or SentinelOne) watch for PAGE_EXECUTE_READWRITE (RWX) memory because it's a common sign of shellcode or a rootkit.
+
+What do we have now?
+You have a blank, executable parking spot in memory. It's currently full of zeros.
+
+
+Step 4:
+
+ The Memory Copy & Return Jump
+We need to do two things to make the trampoline a functional "backup":
+
+    Copy the original bytes from NtCreateFile into the start of the trampoline.
+    Write a 14-byte JMP at the end of those bytes so the CPU can "get back" to the rest of the original function.
+
+A standard JMP (5 bytes) can only reach 2GB away. This 14-byte Absolute JMP is the "industrial-strength" version.
+
+The Breakdown (How the CPU sees it):
+
+    0xFF, 0x25: This is the opcode for an Indirect JMP. It tells the CPU: "Don't jump to the next few bytes; jump to the address stored at the location I'm about to give you."
+    0x00, 0x00, 0x00, 0x00: This is the RIP-Relative Displacement. In 64-bit mode, the CPU calculates the location of the address by adding this number to the current instruction pointer.
+        By setting it to 0, you are telling the CPU: "The 8-byte destination address is located exactly 0 bytes after this 6-byte instruction ends."
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00: This is your 8-byte (64-bit) Placeholder.
+        Right now it is empty.
+        In your next line of code, you will use memcpy to "stamp" your return_address into these 8 bytes.
+The "Magic" of [RIP+0]
+By using this specific 14-byte sequence, you avoid all the complex "Distance Math" required by 5-byte jumps. You just give it a raw 64-bit address, and it works 100% of the time.
+
+  By passing &jump_back[6], you tell memcpy: "Don't touch my JMP command; start writing the data into the empty slot right after it."
+  &return_address (The "GPS Coordinate")
+ This is the number you calculated earlier (addressofNtcreatefile + total_bytes).
+
+    It is the memory location where the original function continues.
+    You are providing the address of this variable so memcpy can read the 8-byte value stored inside it.
+
+In C and C++,
+sizeof(void*) returns the amount of memory (in bytes) required to store a memory address.
+Unlike sizeof(void), which is usually invalid because void represents "no type," a void* is a concrete pointer that can hold the address of any data type.
+
+ jump_location (The Destination)
+This is the memory address inside your Trampoline where the stolen instructions end.
+
+    The Math: trampoline + total_bytes.
+    The Goal: You don't want to overwrite the instructions you just copied (Instructions A, B, and C). You want to place your jump immediately after them so they run first.
+
+ jump_back (The Source)
+This is your 14-byte "Teleporter" array that you just "armed" with the real return address.
+
+    It contains the FF 25 opcode and the 8-byte GPS coordinate (return_address).
+    This is the "data" you are pasting into the trampoline.
+
+ sizeof(jump_back) (The Size)
+This is exactly 14 bytes.
+
+    It tells memcpy to grab the entire jump sequence (the 6-byte instruction + the 8-byte address) and move it into the trampoline.
+
+why did de use memcpy thrice
+We used memcpy three times in Step 4 because we are essentially building a mini-program inside the trampoline. Each call "welds" a different part of the detour together to ensure the code executes safely and returns to the right place.
+The First memcpy: "The Heist"
+
+    Action: memcpy(trampoline, addressofNtcreatefile, total_bytes);
+    Purpose: This copies the original instructions you are about to overwrite into the start of your backup buffer.
+    Why: Without this, the beginning of NtCreateFile is deleted forever the moment you place your hook. This preserves the "entrance" of the function so it can still be used.
+
+The Second memcpy: "Arming the GPS"
+
+    Action: memcpy(&jump_back[6], &return_address, 8);
+    Purpose: This "plugs" your calculated return address into the 8-byte placeholder inside your 14-byte jump array.
+    Why: The 14-byte jump shell is just a template (FF 25 00 00 00 00 ...). This call turns it into a real command that knows exactly where to teleport the CPU.
+
+The Third memcpy: "Connecting the Circuit"
+
+    Action: memcpy(jump_location, jump_back, 14);
+    Purpose: This appends the armed jump to the end of the stolen instructions inside the trampoline.
+    Why: It creates a continuous flow. The CPU runs the stolen instructions (from the 1st memcpy) and then immediately hits the return jump (from the 3rd memcpy) to get back to the original function.
+
+
+Step 5: Unlocking the Original Function
+Now we have to perform the actual Hook. We are going to overwrite the first 14 bytes of the real NtCreateFile in ntdll.dll with a JMP to your C++ function.
+In Step 5, you must "unlock" the memory of the original function. By default, the code section of ntdll.dll is marked as Read/Execute, which means the CPU can run it, but you are forbidden from changing it. If you try to write your hook now, the program will crash with an Access Violation.
+We use the VirtualProtect function (Microsoft Learn) to temporarily grant yourself Write access to that specific memory region.
+This prepares the target address (addressofNtcreatefile) to receive your 14-byte hook.
+addressofNtcreatefile (The Target)
+    What it is: The memory address of the function you found in Step 1.
+    Purpose: This tells Windows exactly where in memory you want to change the rules. You are pointing at the start of the real NtCreateFile inside ntdll.dll.
+
+total_bytes (The Size)
+What it is: The number of bytes you calculated with Capstone in Step 2 (e.g., 15).
+Purpose: You are telling Windows: "I only need to unlock this specific 15-byte window." This is safer than unlocking the whole DLL.
+PAGE_EXECUTE_READWRITE (The New Rule)
+What it is: A constant (macro) that stands for RWX (Read, Write, Execute).
+Purpose: By default, system code is "Read/Execute" only. You are adding the Write permission so that your upcoming memcpy (the hook) doesn't cause a crash.
+&oldstate(The Backup)
+What it is: A pointer to a DWORD variable you created (DWORD oldstate).
+Purpose: Windows insists on giving you the old permissions back before it applies the new ones. It "saves" the original state (usually PAGE_EXECUTE_READ) into this variable.
+Why? After you finish writing your hook in Step 6, you should use VirtualProtect again to change the memory back to oldstate. This "locks the door" behind you so security software doesn't see "Writable Code" (a huge red flag).
+If this function returns True, the "security seal" on NtCreateFile is broken. You are now physically allowed to overwrite the Windows code with your hook.
+The door is unlocked. Now we need to Craft the Hook JMP (which points to your custom C++ function) and write it over the first 14 bytes of NtCreateFile.
