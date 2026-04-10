@@ -7,7 +7,7 @@ This repository serves as a technical portfolio focused on **Windows Internals**
 
 ## 📂 Project Directory
 
-### 1. [Advanced API Hooking Framework](./API-Hooking-Framework)
+### 1. [Advanced API Hooking Framework](./Custom API Hooking Tool)
 *   **Purpose:** Real-time interception of System Calls (NTAPI/Win32).
 *   **Highlights:** Intercepts `NtQuerySystemInformation` and `CreateFileW`.
 *   **Documentation:** Includes an extensive **13,000+ word technical whitepaper** on memory manipulation and workflow analysis.
