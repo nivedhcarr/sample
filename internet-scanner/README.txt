@@ -1,5 +1,5 @@
 
-# Net Keyword Scanner
+# AUTOMATED NETWORK SCANNER
 An autonomous, continuous threat intelligence and network footprinting daemon designed to mimic automated background reconnaissance operations.
 
 ## 🚀 Core Technical Features
