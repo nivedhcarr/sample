@@ -4,6 +4,9 @@ An autonomous, continuous threat intelligence and network footprinting daemon de
 ![Console Demo](screenshot.png)
 
 ## 🚀 Core Technical Features
+
+"The core scripting logic was generated and iteratively modified using an AI collaborator to optimize regex extraction filters and subnet scaling. The system was then manually compiled, debugged, and validated through a live Proof of Concept (PoC) execution phase to ensure runtime stability and structural integrity."
+
 * **Persistent Daemon Architecture**: Runs endlessly in a low-resource process loop while the operator is away from the console.
 * **Self-Purging Queue Ingestion**: Automatically detects targets inside `targets.txt`, loads them into internal memory, and instantly purges the inbound file to prevent redundant scanning loops.
 * **Anti-Firewall Traffic Evasion**: Shuffles and completely randomizes target scanning order to break sequential traffic signatures. Dynamically morphs connection signatures by rotating legitimate desktop/mobile User-Agents and injecting spoofed tracing headers (`X-Forwarded-For`).
