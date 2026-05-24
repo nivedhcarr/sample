@@ -15,7 +15,8 @@ An autonomous, continuous threat intelligence and network footprinting daemon de
 * **Mass Subnet Bit-Shift Scaling**: Features an integrated mathematical CIDR range calculator capable of instantly expanding networks from /16 down to /30 blocks into thousands of individual target nodes.
 
 ## 📂 Repository File Guide
-* `net-keyword-scanner.exe`: The compiled, standalone independent binary desktop application.
+* `net-keyword-scanner.exe`: The ARCHIVED legacy build (Legacy text/keyword matcher only).
+* `net-keyword-scanner-v2.0.exe`: The LATEST compiled binary desktop application featuring email and phone number extraction modules.
 * `net-keyword-scanner.ps1`: The complete production source code showing the underlying extraction logic.
 * `targets.txt`: The active input queue file used to drop target nodes or subnets.
 * `history.txt`: The long-term tracking database used by the script to remember previously scanned nodes and prevent duplicate network noise.
