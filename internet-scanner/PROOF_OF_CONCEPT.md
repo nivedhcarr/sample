@@ -10,7 +10,7 @@ This document serves as the formal Proof of Concept (PoC) validating the operati
 ## 📸 System Execution Capture
 Below is the live execution capture demonstrating the framework processing targets under randomized evasion parameters:
 
-![System Operational Screenshot](poc_screenshot.png)
+![Console Demo](screenshot.png)
 
 ## 🔍 Observed Technical Milestones
 * **Queue Isolation**: The daemon successfully extracted target vectors from the inbound queue file, backed them up into local RAM arrays, and forced a `$null` write to unlock `targets.txt` for future user inputs.
