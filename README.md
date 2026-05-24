@@ -22,6 +22,10 @@ This repository serves as a technical portfolio focused on **Windows Internals**
 *   **Focus:** Understanding low-level input interception and stealthy data logging.
 
 ### 4.[Automated Network Scanner](./Automated%20DNetwork%20Scanner)
+
+* An autonomous, long-running intelligence gathering and network footprinting daemon designed to mimic background reconnaissance operations.
+* Deep Regex Data Mining: Automated pipeline uses multi-pattern regular expressions to parse raw web source code and instantly harvest hidden emails, phone numbers, and infrastructure tracking logs [].
+  
 ---
 
 ## 🛠️ Technical Skillset
