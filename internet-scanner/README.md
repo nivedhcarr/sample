@@ -1,6 +1,7 @@
 
 # 💻 AUTOMATED NETWORK SCANNER
 An autonomous, continuous threat intelligence and network footprinting daemon designed to mimic automated background reconnaissance operations.
+![Console Demo](screenshot.png)
 
 ## 🚀 Core Technical Features
 * **Persistent Daemon Architecture**: Runs endlessly in a low-resource process loop while the operator is away from the console.
