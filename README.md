@@ -21,6 +21,7 @@ This repository serves as a technical portfolio focused on **Windows Internals**
 *   **Techniques:** Implements `SetWindowsHookEx` and `RegSetValueExA` for boot-time survival.
 *   **Focus:** Understanding low-level input interception and stealthy data logging.
 
+### 4.[Automated Network Scanner](./Automated%20DNetwork%20Scanner)
 ---
 
 ## 🛠️ Technical Skillset
