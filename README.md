@@ -42,4 +42,4 @@ Every project in this lab includes a **Defensive Analysis** section, providing I
 All content is for **educational and security research purposes only**. The code is intended to be executed in isolated sandbox environments.
 
 ---
-**"To defeat a threat, you must first understand its architecture."**
+
