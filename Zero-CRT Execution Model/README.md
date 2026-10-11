@@ -3,21 +3,22 @@
 
 ---
 
-
 > An educational systems-engineering project exploring low-level runtime construction, PE internals, compiler behavior, and binary analysis—completely free from the traditional C Runtime (CRT).
 
-
 The purpose of this repository is to understand the complete execution path of a native executable, from the moment the operating system transfers control to the image, through initialization, dependency resolution, runtime construction, and execution.
+
+### 🔄 The Execution Mental Model
+
 A program is not:
 
-Plain Text
+```text
 main()
 └─ logic
- 
+```
 
 A program is:
 
-Plain Text
+```text
 Executable Image
 │
 ▼
@@ -37,9 +38,12 @@ Execution Model
 │
 ▼
 Application Logic
+```
 
-The runtime is organized into independent subsystems.
 
+The runtime is organized into independent, deterministic subsystems.
+
+```text
 ┌──────────────────────────────┐
 │        Entry Layer           │
 └──────────────┬───────────────┘
@@ -78,3 +82,6 @@ The runtime is organized into independent subsystems.
 ┌──────────────────────────────┐
 │   Runtime State Machine      │
 └──────────────────────────────┘
+```
+
+---
