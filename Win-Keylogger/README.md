@@ -1,5 +1,5 @@
 
-# Technical Analysis: Windows Persistence & Keystroke Logger (C++)
+# Simple Keystroke Logger 
 
 ## 🔍 Overview
 This project is a functional research sample of a Windows-based keystroke logger. It was developed to study common malware behaviors, specifically **Registry-based persistence**, **process hiding**, and **unprivileged data exfiltration**.
