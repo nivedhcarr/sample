@@ -2,7 +2,7 @@
 
 Click on the **[Detailed Report](./Detailed-Report/report.txt)** for a full reference and workflow analysis (13,000+ words).
 
-# Windows API Research: Custom Hooking Framework (C++)
+# Windows API Research: Custom Hooking Framework 
 
 ## 🔍 Overview
 This project is an advanced research framework designed to intercept and monitor Windows System Calls in real-time. By hooking low-level APIs, this tool provides a "transparent" view into a sample's hidden behavior, such as file system manipulation, process hiding etc.
